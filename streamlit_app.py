@@ -227,7 +227,6 @@ income_mean = income_mean.rename(columns={"Amount": "Income"})
 expense_mean = averge_paycheck_cycle_expenses.groupby('Paycheck Cycle').agg({'Amount': 'mean'})
 expense_mean["Amount"] = round(expense_mean["Amount"], 2)
 expense_mean = expense_mean.rename(columns={"Amount": "Expense"})
-averge_paycheck_cycle_expenses
 
 income_expense_mean = pd.merge(income_mean, expense_mean, on=["Paycheck Cycle"])
 income_expense_mean['Delta'] = income_expense_mean['Income'] - income_expense_mean["Expense"]
