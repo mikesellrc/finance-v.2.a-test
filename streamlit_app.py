@@ -1,5 +1,3 @@
-# 
-
 import streamlit as st
 import pandas as pd
 import os
@@ -8,21 +6,20 @@ import pickle
 # Set up the title and description
 st.title(":money_with_wings: Finance Management")
 st.write("The purpose of this app is to analyze finances and make informed budget decisions. In case of emergency, click the sidebar.")
+with st.sidebar.expander(':exclamation: Emergency Images'):
+    tab1, tab2, tab3 = st.tabs(["Cat", "Dog", "Owl"])
 
-tab1, tab2, tab3 = st.sidebar.tabs(["Cat", "Dog", "Owl"])
+    with tab1:
+        st.header("A cat")
+        st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
+    with tab2:
+        st.header("A dog")
+        st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
+    with tab3:
+        st.header("An owl")
+        st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
 
-with tab1:
-    st.header("A cat")
-    st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
-with tab2:
-    st.header("A dog")
-    st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
-with tab3:
-    st.header("An owl")
-    st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
-
-# File path for persistent storage
-data_file_path = "uploaded_data.pkl"
+data_file_path = "uploaded_files.pkl"
 
 # Load existing data if available
 if os.path.exists(data_file_path):
@@ -37,6 +34,11 @@ def upload_csv():
     
     if uploaded_files is not None:
         for file in uploaded_files:
+            # Check if the file already exists in session state
+            if any(f['file_name'] == file.name for f in st.session_state['data_files']):
+                st.write(f"File {file.name} is already uploaded.")
+                continue  # Skip uploading this file
+            
             # Read the CSV file and process it
             df = pd.read_csv(file)
             
@@ -53,38 +55,6 @@ def upload_csv():
 # Call the upload function
 upload_csv()
 
-# Sidebar for managing uploaded files
-st.sidebar.title("Uploaded Files")
-
-# If there are files in the session state, display them with options
-if 'data_files' in st.session_state and st.session_state['data_files']:
-    # Display the list of files with delete options in columns
-    for i, file_info in enumerate(st.session_state['data_files']):
-        file_name = file_info['file_name']
-        
-        # Create two columns: one for the file name, one for the delete button
-        col1, col2 = st.sidebar.columns([4, 1])  # Adjust column width as needed
-        
-        with col1:
-            st.write(file_name)
-        
-        with col2:
-            if st.button(f":x:", key=f"delete_{i}"):
-                st.session_state['data_files'].pop(i)
-                # Save the updated session state to persistent storage
-                with open(data_file_path, "wb") as f:
-                    pickle.dump(st.session_state['data_files'], f)
-                st.sidebar.write(f"{file_name} deleted.")
-                break  # Ensure only one file is deleted at a time
-        
-    # Option to clear all files
-    if st.sidebar.button("Clear All Files"):
-        st.session_state['data_files'] = []
-        # Save the empty list to persistent storage
-        with open(data_file_path, "wb") as f:
-            pickle.dump(st.session_state['data_files'], f)
-        st.sidebar.write("All files cleared.")
-
 # Combine all uploaded dataframes if they exist
 if 'data_files' in st.session_state and st.session_state['data_files']:
     # Combine all DataFrames
@@ -95,16 +65,10 @@ if 'data_files' in st.session_state and st.session_state['data_files']:
     union_df['Day of Month'] = union_df['Date'].dt.day
     union_df['Month'] = union_df['Date'].dt.month
     union_df['Year'] = union_df['Date'].dt.year
-    
-    st.write("Combined Data:")
-    st.write(union_df)
 
+    with st.expander("Combined Data:"):
+        st.write(union_df)
 
-# modify data
-union_df['Date'] = pd.to_datetime(union_df['Date'])
-union_df['Day of Month'] = union_df['Date'].dt.day
-union_df['Month'] = union_df['Date'].dt.month
-union_df['Year'] = union_df['Date'].dt.year
 
 # Sort transactions in ascending order (so paycheck assignment works correctly)
 union_df = union_df.sort_values(by='Date', ascending=True)
@@ -263,6 +227,7 @@ income_mean = income_mean.rename(columns={"Amount": "Income"})
 expense_mean = averge_paycheck_cycle_expenses.groupby('Paycheck Cycle').agg({'Amount': 'mean'})
 expense_mean["Amount"] = round(expense_mean["Amount"], 2)
 expense_mean = expense_mean.rename(columns={"Amount": "Expense"})
+averge_paycheck_cycle_expenses
 
 income_expense_mean = pd.merge(income_mean, expense_mean, on=["Paycheck Cycle"])
 income_expense_mean['Delta'] = income_expense_mean['Income'] - income_expense_mean["Expense"]
@@ -450,3 +415,36 @@ if st.button("Clear All Paycheck 2 Expenses"):
     st.session_state.second_paycheck_expenses = pd.DataFrame(columns=['txn', 'cost', 'd'])
     save_second_paycheck_data()
     st.rerun()
+
+# Sidebar for managing uploaded files
+st.sidebar.title("Uploaded Files")
+
+# If there are files in the session state, display them with options
+if 'data_files' in st.session_state and st.session_state['data_files']:
+    # Display the list of files with delete options in columns
+    for i, file_info in enumerate(st.session_state['data_files']):
+        file_name = file_info['file_name']
+        
+        # Create two columns: one for the file name, one for the delete button
+        col1, col2 = st.sidebar.columns([4, 1])  # Adjust column width as needed
+        
+        with col1:
+            st.write(file_name)
+        
+        with col2:
+            # Create a unique key for each button to avoid conflicts
+            if st.button(f":x:", key=f"delete_{i}"):
+                st.session_state['data_files'].pop(i)
+                # Save the updated session state to persistent storage
+                with open(data_file_path, "wb") as f:
+                    pickle.dump(st.session_state['data_files'], f)
+                st.sidebar.write(f"{file_name} deleted.")
+                break  # Ensure only one file is deleted at a time
+        
+    # Option to clear all files
+    if st.sidebar.button("Clear All Files"):
+        st.session_state['data_files'] = []
+        # Save the empty list to persistent storage
+        with open(data_file_path, "wb") as f:
+            pickle.dump(st.session_state['data_files'], f)
+        st.sidebar.write("All files cleared.")
