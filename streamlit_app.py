@@ -599,7 +599,7 @@ for index, row in st.session_state.grocery_expense_data.iterrows():
     col2.write(f"${row['amount']:.2f}")
     col3.write(row['date'])
 
-    if col4.button("❌", key=f"del_2_{index}"):
+    if col4.button("❌", key=f"del_3_{index}"):
         st.session_state.grocery_expense_data.drop(index, inplace=True)
         st.session_state.grocery_expense_data.reset_index(
             drop=True, inplace=True)
