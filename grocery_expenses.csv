@@ -1,2 +1,2 @@
-date,store,amount
-2025-03-12,Walmart,250.0
+date,store,amount,txn,cost,d
+2025-03-12,Walmart,250.0,Walmart,250.0,2025-03-12

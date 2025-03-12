@@ -491,19 +491,95 @@ if submitted and txn:
     save_data()
     st.rerun()
 
-# Display subscription list for Paycheck 1
+# # Display subscription list for Paycheck 1
+# st.write("### Expense List (Paycheck 1)")
+# for index, row in st.session_state.paycheck1_expenses.iterrows():
+#     col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+#     col1.write(row['txn'])
+#     col2.write(f"${row['cost']:.2f}")
+#     col3.write(row['d'])
+
+#     if col4.button("❌", key=f"del_{index}"):
+#         st.session_state.paycheck1_expenses.drop(index, inplace=True)
+#         st.session_state.paycheck1_expenses.reset_index(drop=True, inplace=True)
+#         save_data()
+#         st.rerun()
+
+# st.write("### Expense List (Paycheck 1)")
+
+# updated_expenses = st.session_state.paycheck1_expenses.copy()
+
+# for index, row in updated_expenses.iterrows():
+#     col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+    
+#     # Editable fields
+#     txn = col1.text_input("Transaction", row['txn'], key=f"txn_{index}")
+#     cost = col2.number_input("Cost", value=row['cost'], min_value=0.0, step=0.01, key=f"cost_{index}")
+#     d = col3.date_input("Charge Date", row['d'], key=f"date_{index}")
+
+#     # Delete button
+#     if col4.button("❌", key=f"del_{index}"):
+#         updated_expenses.drop(index, inplace=True)
+#         updated_expenses.reset_index(drop=True, inplace=True)
+#         st.session_state.paycheck1_expenses = updated_expenses
+#         save_data()
+#         st.rerun()
+
+# # Save updates if anything changed
+# if not updated_expenses.equals(st.session_state.paycheck1_expenses):
+#     st.session_state.paycheck1_expenses = updated_expenses
+#     save_data()
+#     st.rerun()
+
+import datetime
+
 st.write("### Expense List (Paycheck 1)")
+
+updated_expenses = st.session_state.paycheck1_expenses.copy()
+
 for index, row in st.session_state.paycheck1_expenses.iterrows():
     col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
-    col1.write(row['txn'])
-    col2.write(f"${row['cost']:.2f}")
-    col3.write(row['d'])
 
+    # Unique keys for session state storage
+    txn_key = f"txn_{index}"
+    cost_key = f"cost_{index}"
+    date_key = f"date_{index}"
+
+    # Initialize session state with existing row values
+    if txn_key not in st.session_state:
+        st.session_state[txn_key] = row['txn']
+    if cost_key not in st.session_state:
+        st.session_state[cost_key] = row['cost']
+    if date_key not in st.session_state:
+        # Convert string to date if necessary
+        if isinstance(row['d'], str):
+            st.session_state[date_key] = datetime.datetime.strptime(row['d'], "%Y-%m-%d").date()
+        else:
+            st.session_state[date_key] = row['d']
+
+    # Editable fields
+    txn = col1.text_input("Transaction", st.session_state[txn_key], key=txn_key)
+    cost = col2.number_input("Cost", value=st.session_state[cost_key], min_value=0.0, step=0.01, key=cost_key)
+    d = col3.date_input("Charge Date", value=st.session_state[date_key], key=date_key)
+
+    # Update DataFrame with new values
+    updated_expenses.at[index, 'txn'] = txn
+    updated_expenses.at[index, 'cost'] = cost
+    updated_expenses.at[index, 'd'] = d
+
+    # Delete button
     if col4.button("❌", key=f"del_{index}"):
-        st.session_state.paycheck1_expenses.drop(index, inplace=True)
-        st.session_state.paycheck1_expenses.reset_index(drop=True, inplace=True)
+        updated_expenses.drop(index, inplace=True)
+        updated_expenses.reset_index(drop=True, inplace=True)
+        st.session_state.paycheck1_expenses = updated_expenses
         save_data()
         st.rerun()
+
+# Save updates back to session state if there are changes
+if not updated_expenses.equals(st.session_state.paycheck1_expenses):
+    st.session_state.paycheck1_expenses = updated_expenses
+    save_data()
+
 
 if st.button("Clear All Paycheck 1 Expenses"):
     st.session_state.paycheck1_expenses = pd.DataFrame(columns=['txn', 'cost', 'd'])
@@ -532,20 +608,70 @@ if submitted_2 and txn_2:
     save_second_paycheck_data()
     st.rerun()
 
-# Display second paycheck expense list
+# # Display second paycheck expense list
+# st.write("### Expense List (Paycheck 2)")
+# for index, row in st.session_state.second_paycheck_expenses.iterrows():
+#     col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+#     col1.write(row['txn'])
+#     col2.write(f"${row['cost']:.2f}")
+#     col3.write(row['d'])
+
+#     if col4.button("❌", key=f"del_2_{index}"):
+#         st.session_state.second_paycheck_expenses.drop(index, inplace=True)
+#         st.session_state.second_paycheck_expenses.reset_index(
+#             drop=True, inplace=True)
+#         save_second_paycheck_data()
+#         st.rerun()
+
+#############################################################
+import datetime
+
 st.write("### Expense List (Paycheck 2)")
+
+updated_expenses = st.session_state.second_paycheck_expenses.copy()
+
 for index, row in st.session_state.second_paycheck_expenses.iterrows():
     col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
-    col1.write(row['txn'])
-    col2.write(f"${row['cost']:.2f}")
-    col3.write(row['d'])
 
-    if col4.button("❌", key=f"del_2_{index}"):
-        st.session_state.second_paycheck_expenses.drop(index, inplace=True)
-        st.session_state.second_paycheck_expenses.reset_index(
-            drop=True, inplace=True)
+    # Unique keys for session state storage
+    txn_key = f"txn2_{index}"
+    cost_key = f"cost2_{index}"
+    date_key = f"date2_{index}"
+
+    # Initialize session state with existing row values
+    if txn_key not in st.session_state:
+        st.session_state[txn_key] = row['txn']
+    if cost_key not in st.session_state:
+        st.session_state[cost_key] = row['cost']
+    if date_key not in st.session_state:
+        # Convert string to date if necessary
+        if isinstance(row['d'], str):
+            st.session_state[date_key] = datetime.datetime.strptime(row['d'], "%Y-%m-%d").date()
+        else:
+            st.session_state[date_key] = row['d']
+
+    # Editable fields
+    txn = col1.text_input("Transaction", st.session_state[txn_key], key=txn_key)
+    cost = col2.number_input("Cost", value=st.session_state[cost_key], min_value=0.0, step=0.01, key=cost_key)
+    d = col3.date_input("Charge Date", value=st.session_state[date_key], key=date_key)
+
+    # Update DataFrame with new values
+    updated_expenses.at[index, 'txn'] = txn
+    updated_expenses.at[index, 'cost'] = cost
+    updated_expenses.at[index, 'd'] = d
+
+    # Delete button
+    if col4.button("❌", key=f"del2_{index}"):
+        updated_expenses.drop(index, inplace=True)
+        updated_expenses.reset_index(drop=True, inplace=True)
+        st.session_state.second_paycheck_expenses = updated_expenses
         save_second_paycheck_data()
         st.rerun()
+
+# Save updates back to session state if there are changes
+if not updated_expenses.equals(st.session_state.second_paycheck_expenses):
+    st.session_state.second_paycheck_expenses = updated_expenses
+    save_second_paycheck_data()
 
 # Button to clear all second paycheck expenses
 if st.button("Clear All Paycheck 2 Expenses"):
@@ -591,21 +717,68 @@ if submit and store:
     save_grocery_expense_data()
     st.rerun()
 
-# Display second paycheck expense list
+# # Display second paycheck expense list
+# st.write("### Expense List (Groceries)")
+# for index, row in st.session_state.grocery_expense_data.iterrows():
+#     col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+#     col1.write(row['store'])
+#     col2.write(f"${row['amount']:.2f}")
+#     col3.write(row['date'])
+
+#     if col4.button("❌", key=f"del_3_{index}"):
+#         st.session_state.grocery_expense_data.drop(index, inplace=True)
+#         st.session_state.grocery_expense_data.reset_index(
+#             drop=True, inplace=True)
+#         save_grocery_expense_data()
+#         st.rerun()
+import datetime
+
 st.write("### Expense List (Groceries)")
+
+updated_expenses = st.session_state.grocery_expense_data.copy()
+
 for index, row in st.session_state.grocery_expense_data.iterrows():
     col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
-    col1.write(row['store'])
-    col2.write(f"${row['amount']:.2f}")
-    col3.write(row['date'])
 
-    if col4.button("❌", key=f"del_3_{index}"):
-        st.session_state.grocery_expense_data.drop(index, inplace=True)
-        st.session_state.grocery_expense_data.reset_index(
-            drop=True, inplace=True)
+    # Unique keys for session state storage
+    txn_key = f"txn3_{index}"
+    cost_key = f"cost3_{index}"
+    date_key = f"date3_{index}"
+
+    # Initialize session state with existing row values
+    if txn_key not in st.session_state:
+        st.session_state[txn_key] = row['store']
+    if cost_key not in st.session_state:
+        st.session_state[cost_key] = row['amount']
+    if date_key not in st.session_state:
+        # Convert string to date if necessary
+        if isinstance(row['date'], str):
+            st.session_state[date_key] = datetime.datetime.strptime(row['date'], "%Y-%m-%d").date()
+        else:
+            st.session_state[date_key] = row['date']
+
+    # Editable fields
+    txn = col1.text_input("Transaction", st.session_state[txn_key], key=txn_key)
+    cost = col2.number_input("Cost", value=st.session_state[cost_key], min_value=0.0, step=0.01, key=cost_key)
+    d = col3.date_input("Charge Date", value=st.session_state[date_key], key=date_key)
+
+    # Update DataFrame with new values
+    updated_expenses.at[index, 'store'] = txn
+    updated_expenses.at[index, 'amount'] = cost
+    updated_expenses.at[index, 'date'] = d
+
+    # Delete button
+    if col4.button("❌", key=f"del3_{index}"):
+        updated_expenses.drop(index, inplace=True)
+        updated_expenses.reset_index(drop=True, inplace=True)
+        st.session_state.grocery_expense_data = updated_expenses
         save_grocery_expense_data()
         st.rerun()
 
+# Save updates back to session state if there are changes
+if not updated_expenses.equals(st.session_state.grocery_expense_data):
+    st.session_state.grocery_expense_data = updated_expenses
+    save_grocery_expense_data()
 # Button to clear all second paycheck expenses
 if st.button("Clear All Grocery Expenses"):
     st.session_state.grocery_expense_data = pd.DataFrame(

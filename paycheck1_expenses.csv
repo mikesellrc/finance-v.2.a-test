@@ -1,9 +1,6 @@
 txn,cost,d
 USAA Property and Casualty Insurance,7.0,2025-03-10
-Cat,23.0,2025-03-13
-Rent (USAA Transfer),1399.99,2025-04-01
-CarMax,356.82,2025-04-02
+Rent (a change),1400.0,2025-04-01
+CarMax MADMAX,356.82,2025-04-02
 CenterPoint Gas Bill,50.0,2025-04-06
 Unisa Inc Utah State,200.0,2025-04-02
-AT&T,57.82,2025-04-04
-Bossier City Water,95.0,2025-04-07
