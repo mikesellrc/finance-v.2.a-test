@@ -786,6 +786,8 @@ if st.button("Clear All Grocery Expenses"):
     save_grocery_expense_data()
     st.rerun()
 
+st.write('Grocery Budget App: https://grocery-budget-9n4dqk3iap.streamlit.app/')
+
 # Sidebar for managing uploaded files
 st.sidebar.title("Uploaded Files")
 
