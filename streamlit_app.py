@@ -30,8 +30,6 @@ else:
     st.session_state['data_files'] = []
 
 # Function to upload CSV files
-
-
 def upload_csv():
     uploaded_files = st.file_uploader("Upload CSV files", type=[
                                       "csv"], accept_multiple_files=True)
@@ -339,39 +337,34 @@ PAYCHECK1_EXPENSES = "paycheck1_expenses.csv"
 PAYCHECK2_EXPENSES = "second_paycheck_expenses.csv"
 PAYCHECK1_INCOME = 'paycheck1_income.json'
 PAYCHECK2_INCOME = 'paycheck2_income.json'
+GROCERY_BUDGET = 'grocery_budget.csv'
+GROCERY_EXPENSES = 'grocery_expenses.csv'
 
 # Load data from CSV
-
-
 def load_data():
     return pd.read_csv(PAYCHECK1_EXPENSES) if os.path.exists(PAYCHECK1_EXPENSES) else pd.DataFrame(columns=['txn', 'cost', 'd'])
 
 # Save data to CSV
-
-
 def save_data():
     st.session_state.paycheck1_expenses.to_csv(PAYCHECK1_EXPENSES, index=False)
 
 # Load second paycheck expenses data
-
-
 def load_second_paycheck_data():
     return pd.read_csv(PAYCHECK2_EXPENSES) if os.path.exists(PAYCHECK2_EXPENSES) else pd.DataFrame(columns=['txn', 'cost', 'd'])
 
 # Save second paycheck expenses data
-
-
 def save_second_paycheck_data():
-    st.session_state.second_paycheck_expenses.to_csv(
-        PAYCHECK2_EXPENSES, index=False)
+    st.session_state.second_paycheck_expenses.to_csv(PAYCHECK2_EXPENSES, index=False)
+
+# Load grocery data
+def load_grocery_expense_data():
+    return pd.read_csv(GROCERY_EXPENSES) if os.path.exists(GROCERY_EXPENSES) else pd.DataFrame(columns=['date', 'store', 'amount'])
+
+# Save grocery data
+def save_grocery_expense_data():
+    st.session_state.grocery_expense_data.to_csv(GROCERY_EXPENSES, index=False)
 
 # Load income data (ensure it's a float)
-# def get_income():
-#     return float(most_recent_income) if not defense_income_data.empty else 0.0
-
-# LOAD Paycheck 1 INCOME
-
-
 def load_paycheck1():
     if os.path.exists(PAYCHECK1_INCOME):
         with open(PAYCHECK1_INCOME, 'r') as f:
@@ -382,15 +375,11 @@ def load_paycheck1():
     return {}
 
 # SAVE Paycheck 1 INCOME
-
-
 def save_paycheck1():
     with open(PAYCHECK1_INCOME, 'w') as f:
         json.dump({'paycheck1_key': st.session_state.paycheck1_key}, f)
 
 # LOAD Paycheck 2 INCOME
-
-
 def load_paycheck2():
     if os.path.exists(PAYCHECK2_INCOME):
         with open(PAYCHECK2_INCOME, 'r') as f:
@@ -401,30 +390,49 @@ def load_paycheck2():
     return {}
 
 # SAVE Paycheck 2 INCOME
-
-
 def save_paycheck2():
     with open(PAYCHECK2_INCOME, 'w') as f:
         json.dump({'paycheck2_key': st.session_state.paycheck2_key}, f)
 
+# LOAD Grocery Budget
+def load_groc_budget():
+    if os.path.exists(GROCERY_BUDGET):
+        with open(GROCERY_BUDGET, 'r') as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+# SAVE Grocery Budget
+def save_groc_budget():
+    with open(GROCERY_BUDGET, 'w') as f:
+        json.dump({'grocery_budget_key': st.session_state.grocery_budget_key}, f)
 
 # Initialize session state
 if 'paycheck1_expenses' not in st.session_state:
     st.session_state.paycheck1_expenses = load_data()
 
-# if 'income_number' not in st.session_state:
-#     st.session_state.income_number = get_income()  # Ensure it's initialized correctly
-
 if 'second_paycheck_expenses' not in st.session_state:
     st.session_state.second_paycheck_expenses = load_second_paycheck_data()
 
+if 'grocery_expense_data' not in st.session_state:
+    st.session_state.grocery_expense_data = load_grocery_expense_data()
+
 session_paycheck1 = load_paycheck1()
 st.session_state.setdefault(
-    'paycheck1_key', session_paycheck1.get('paycheck1_key', 0.0))
+    'paycheck1_key', session_paycheck1.get('paycheck1_key', 0.0)
+    )
 
 session_paycheck2 = load_paycheck2()
 st.session_state.setdefault(
-    'paycheck2_key', session_paycheck2.get('paycheck2_key', 0.0))
+    'paycheck2_key', session_paycheck2.get('paycheck2_key', 0.0)
+    )
+
+session_grocery = load_groc_budget()
+st.session_state.setdefault(
+    'grocery_budget_key', session_grocery.get('grocery_budget_key', 0.0)
+    )
 
 # User sets their income (persists across sessions, but defaults to `most_recent_income`)
 st.sidebar.header("Income Settings")
@@ -452,9 +460,16 @@ paycheck1_total_expenses = st.session_state.paycheck1_expenses['cost'].sum(
 paycheck2_total_expense = st.session_state.second_paycheck_expenses['cost'].sum(
 ) if not st.session_state.second_paycheck_expenses.empty else 0
 
+# Calculate total cost of groceries so far
+grocery_total_expenses = st.session_state.grocery_expense_data['amount'].sum(
+) if not st.session_state.grocery_expense_data.empty else 0
+
 # Remaining balance for first and second paycheck
 remaining_balance_first_paycheck = st.session_state.paycheck1_key - paycheck1_total_expenses
 remaining_balance_second_paycheck = st.session_state.paycheck2_key - paycheck2_total_expense
+
+# Remaining balance for grocery budget
+remaining_grocery_budget = st.session_state.grocery_budget_key - grocery_total_expenses
 
 st.write("### Paycheck 1 Expenses")
 # Display the remaining balance for paycheck 1
@@ -537,6 +552,65 @@ if st.button("Clear All Paycheck 2 Expenses"):
     st.session_state.second_paycheck_expenses = pd.DataFrame(
         columns=['txn', 'cost', 'd'])
     save_second_paycheck_data()
+    st.rerun()
+
+# Grocery
+st.write('### Grocery Budget')
+# Budget decision input
+st.number_input(
+    'Decision',
+    min_value=0.0,
+    value=0.0,
+    step=10.0,
+    key='grocery_budget_key',
+    on_change=save_groc_budget
+    )
+# Metric
+st.metric(
+    label='Remaining Balance',
+    value=f'${remaining_grocery_budget:,.2f}',
+    delta=f'-${grocery_total_expenses:,.2f}'
+          )
+
+# Grocery Form
+st.write('Grocery Expense List')
+with st.form('New Grocery Expense'):
+    st.write('Enter the details of your new grocery expense')
+    store = st.text_input('Store')
+    costt = st.number_input('Cost', min_value=0.0, step=1.0)
+    dt = st.date_input('Charge Date')
+    submit = st.form_submit_button('Submit Expense')
+
+if submit and store:
+    nw_entry = pd.DataFrame(
+        [[dt, store, costt]], columns=['date', 'store', 'amount']
+    )
+    st.session_state.grocery_expense_data = pd.concat(
+        [st.session_state.grocery_expense_data, nw_entry], ignore_index=True
+    )
+    save_grocery_expense_data()
+    st.rerun()
+
+# Display second paycheck expense list
+st.write("### Expense List (Groceries)")
+for index, row in st.session_state.grocery_expense_data.iterrows():
+    col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+    col1.write(row['store'])
+    col2.write(f"${row['amount']:.2f}")
+    col3.write(row['date'])
+
+    if col4.button("❌", key=f"del_2_{index}"):
+        st.session_state.grocery_expense_data.drop(index, inplace=True)
+        st.session_state.grocery_expense_data.reset_index(
+            drop=True, inplace=True)
+        save_grocery_expense_data()
+        st.rerun()
+
+# Button to clear all second paycheck expenses
+if st.button("Clear All Grocery Expenses"):
+    st.session_state.grocery_expense_data = pd.DataFrame(
+        columns=['date', 'store', 'amount'])
+    save_grocery_expense_data()
     st.rerun()
 
 # Sidebar for managing uploaded files
