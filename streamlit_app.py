@@ -569,7 +569,7 @@ for index, row in st.session_state.paycheck1_expenses.iterrows():
     updated_expenses.at[index, 'd'] = d
 
     # Delete button
-    if col4.button("❌", key=f"del_{index}"):
+    if col4.button("❌", key=f"del_{index + 1}"):
         updated_expenses.drop(index, inplace=True)
         updated_expenses.reset_index(drop=True, inplace=True)
         st.session_state.paycheck1_expenses = updated_expenses
@@ -662,7 +662,7 @@ for index, row in st.session_state.second_paycheck_expenses.iterrows():
     updated_expenses.at[index, 'd'] = d
 
     # Delete button
-    if col4.button("❌", key=f"del2_{index}"):
+    if col4.button("❌", key=f"del2_{index + 1}"):
         updated_expenses.drop(index, inplace=True)
         updated_expenses.reset_index(drop=True, inplace=True)
         st.session_state.second_paycheck_expenses = updated_expenses
