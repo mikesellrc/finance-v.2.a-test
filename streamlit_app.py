@@ -305,7 +305,8 @@ with st.expander('Common and recurring expenses with their charge date range'):
     st.dataframe(recurring_expenses_charge_range)
 
 with st.expander('All expenses'):
-    st.dataframe(expense_data)
+    col_order = ['Day of Month', 'Paycheck Year Month', 'Paycheck Cycle', 'Description', 'Amount']
+    st.dataframe(expense_data[col_order])
 
 '''
 Expense-Income Overlap Visual
