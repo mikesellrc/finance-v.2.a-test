@@ -308,6 +308,27 @@ with st.expander('All expenses'):
     col_order = ['Day of Month', 'Paycheck Year Month', 'Paycheck Cycle', 'Description', 'Amount']
     st.dataframe(expense_data[col_order])
 
+# Display irregular recurring expenses
+with st.expander('Irregularly Recurring Details'):
+    irreg_exp = {
+        'Cycle': ['Quarterly', 'Quarterly', 'Bimonthly', 'Annual', 'Annual', 'Annual'],
+        'Merchant': ['Mint (C)', 'Mint (R)', 'Anti-Pest', 'Google Cloud 200 GB (R)', 'Chat GPT', 'Walmart+'], 
+        'Cost': [120.00, 120.00, 80.00, 30.89, 39.99, 98.00],
+        'Month': ['Jan, Apr, Jul, Oct', 'Jan, Apr, Jul, Oct', 'Jan, Mar, May, Jul, Sep, Nov', 'Jul', 'Jul', 'May']
+    }
+    irreg_exp_df = pd.DataFrame(irreg_exp)
+    col_order_ir_exp = ['Cycle', 'Merchant','Month']
+    st.dataframe(irreg_exp_df[col_order_ir_exp])
+
+# Display irregular recurring expenses navigation
+with st.expander('Irregularly Recurring Navigation'):
+    irreg_exp_nav = {
+        'Merchant': ['Mint (C)', 'Mint (R)', 'Anti-Pest', 'Google Cloud 200 GB (R)', 'Chat GPT', 'Walmart+'],
+        'Nav': ['Mint Mobil App or https://my.mintmobile.com/account/summary/primary', 'Mint Mobil App or https://my.mintmobile.com/account/summary/primary', 'Call 318-668-2682', 'https://play.google.com/store/account/subscriptions', 'https://play.google.com/store/account/subscriptions', 'https://www.walmart.com/account/plus/manage']
+            }
+    irreg_exp_nav_df = pd.DataFrame(irreg_exp_nav)
+    col_order_ir_exp_nav = ['Merchant','Nav']
+    st.dataframe(irreg_exp_nav_df[col_order_ir_exp_nav])
 '''
 Expense-Income Overlap Visual
 '''
